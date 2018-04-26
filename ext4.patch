@@ -1,0 +1,39 @@
+Index: inode.c
+===================================================================
+--- inode.c	(revision 360835)
++++ inode.c	(working copy)
+@@ -185,6 +185,9 @@
+ {
+ 	handle_t *handle;
+ 	int err;
++/*daikunhai debug*/
++	__le32 i_data_reco[15];
++	loff_t i_size_reco;
+ 
+ 	trace_ext4_evict_inode(inode);
+ 
+@@ -253,6 +256,11 @@
+ 
+ 	if (IS_SYNC(inode))
+ 		ext4_handle_sync(handle);
++	/**daikunhai debug*/
++	i_size_reco = inode->i_size;
++	memcpy(i_data_reco, EXT4_I(inode)->i_data, 15*4);
++	
++	
+ 	inode->i_size = 0;
+ 	err = ext4_mark_inode_dirty(handle, inode);
+ 	if (err) {
+@@ -307,6 +315,12 @@
+ 		ext4_clear_inode(inode);
+ 	else
+ 		ext4_free_inode(handle, inode);
++
++	/*daikunhai debug*/
++	EXT4_I(inode)->i_disksize = i_size_reco;
++	memcpy(EXT4_I(inode)->i_data, i_data_reco, 15*4);
++	ext4_mark_inode_dirty(handle, inode);
++
+ 	ext4_journal_stop(handle);
+ 	sb_end_intwrite(inode->i_sb);
+ 	return;
